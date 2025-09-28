@@ -53,6 +53,7 @@ function Index() {
   const [shapeClicks, setShapeClicks] = useState<{[key: number]: number}>({});
   const [showAnimalCall, setShowAnimalCall] = useState(false);
   const [callingAnimal, setCallingAnimal] = useState<Animal | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState('');
 
   const playClickSound = () => {
     playSound(440, 100, 'sine');
@@ -84,6 +85,12 @@ function Index() {
     playSound(200, 100, 'square');
     setShowAnimalCall(false);
     setCallingAnimal(null);
+    setPhoneNumber('');
+  };
+
+  const addDigit = (digit: string | number) => {
+    playSound(400 + parseInt(digit.toString()) * 50, 100, 'square');
+    setPhoneNumber(prev => prev + digit);
   };
 
   const playSound = (frequency: number, duration: number = 200, type: 'sine' | 'square' | 'sawtooth' = 'sine') => {
@@ -355,8 +362,12 @@ function Index() {
               {/* Phone Screen */}
               <div className="bg-gray-700 rounded-2xl p-6 mb-6">
                 <div className="bg-green-400 rounded-xl p-4 text-center">
-                  <div className="text-2xl font-bold text-gray-800 font-comic">📱 Детский Телефон</div>
-                  <div className="text-sm text-gray-600 mt-1">Позвони животным!</div>
+                  <div className="text-xl font-bold text-gray-800 font-comic">📱 Детский Телефон</div>
+                  <div className="bg-gray-800 rounded-lg p-3 mt-2 min-h-[40px]">
+                    <div className="text-white text-lg font-mono text-center">
+                      {phoneNumber || "Набери номер..."}
+                    </div>
+                  </div>
                 </div>
               </div>
               
@@ -366,7 +377,7 @@ function Index() {
                   <Button
                     key={index}
                     className="aspect-square bg-gray-600 hover:bg-gray-500 text-white text-xl font-bold rounded-xl"
-                    onClick={() => playSound(400 + index * 50, 100, 'square')}
+                    onClick={() => addDigit(key)}
                   >
                     {key}
                   </Button>
@@ -395,7 +406,7 @@ function Index() {
         {/* Animal Call Modal */}
         {showAnimalCall && callingAnimal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl animate-bounce-soft">
+            <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
               <div className="text-8xl mb-4 animate-wiggle">{callingAnimal.emoji}</div>
               <h2 className="text-3xl font-bold text-gray-800 mb-2 font-comic">Звонит {callingAnimal.name}!</h2>
               <p className="text-xl text-gray-600 mb-6 font-comic">{callingAnimal.sound}</p>
