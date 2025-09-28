@@ -52,12 +52,114 @@ function Index() {
   const [currentGame, setCurrentGame] = useState<GameType>('home');
   const [shapeClicks, setShapeClicks] = useState<{[key: number]: number}>({});
 
-  const speak = (text: string) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'ru-RU';
-      utterance.rate = 0.8;
-      speechSynthesis.speak(utterance);
+  const playClickSound = () => {
+    playSound(440, 100, 'sine');
+  };
+
+  const playBackSound = () => {
+    playSound(330, 150, 'sine');
+    setTimeout(() => playSound(220, 100, 'sine'), 100);
+  };
+
+  const playSound = (frequency: number, duration: number = 200, type: 'sine' | 'square' | 'sawtooth' = 'sine') => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = frequency;
+      oscillator.type = type;
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + duration / 1000);
+    } catch (error) {
+      console.log('Audio not supported');
+    }
+  };
+
+  const playAnimalSound = (animal: string) => {
+    switch (animal) {
+      case 'Корова':
+        playSound(200, 500, 'sawtooth');
+        setTimeout(() => playSound(150, 300, 'sawtooth'), 200);
+        break;
+      case 'Собака':
+        playSound(300, 100, 'square');
+        setTimeout(() => playSound(250, 100, 'square'), 150);
+        break;
+      case 'Кот':
+        playSound(400, 200, 'sine');
+        setTimeout(() => playSound(450, 150, 'sine'), 100);
+        break;
+      case 'Утка':
+        playSound(350, 150, 'square');
+        setTimeout(() => playSound(300, 150, 'square'), 200);
+        setTimeout(() => playSound(350, 150, 'square'), 400);
+        break;
+      case 'Лев':
+        playSound(150, 800, 'sawtooth');
+        break;
+      case 'Овца':
+        playSound(250, 400, 'sine');
+        setTimeout(() => playSound(300, 200, 'sine'), 300);
+        break;
+    }
+  };
+
+  const playNumberSound = (number: number) => {
+    const baseFreq = 220;
+    const freq = baseFreq + (number * 50);
+    playSound(freq, 300, 'sine');
+    setTimeout(() => playSound(freq * 1.25, 200, 'sine'), 150);
+  };
+
+  const playColorSound = (color: string) => {
+    const colorFreqs: {[key: string]: number} = {
+      'Красный': 261.63,
+      'Синий': 293.66,
+      'Зелёный': 329.63,
+      'Жёлтый': 349.23,
+      'Фиолетовый': 392.00,
+      'Оранжевый': 440.00
+    };
+    const freq = colorFreqs[color] || 300;
+    playSound(freq, 400, 'sine');
+  };
+
+  const playShapeSound = (shape: string) => {
+    switch (shape) {
+      case 'Круг':
+        playSound(400, 300, 'sine');
+        break;
+      case 'Квадрат':
+        playSound(300, 200, 'square');
+        setTimeout(() => playSound(300, 200, 'square'), 250);
+        break;
+      case 'Треугольник':
+        playSound(350, 150, 'sine');
+        setTimeout(() => playSound(400, 150, 'sine'), 200);
+        setTimeout(() => playSound(450, 150, 'sine'), 400);
+        break;
+      case 'Звезда':
+        for (let i = 0; i < 5; i++) {
+          setTimeout(() => playSound(500 + i * 50, 100, 'sine'), i * 100);
+        }
+        break;
+      case 'Сердце':
+        playSound(450, 200, 'sine');
+        setTimeout(() => playSound(550, 200, 'sine'), 100);
+        break;
+      case 'Ромб':
+        playSound(380, 150, 'sine');
+        setTimeout(() => playSound(420, 150, 'sine'), 200);
+        setTimeout(() => playSound(380, 150, 'sine'), 400);
+        break;
     }
   };
 
@@ -68,9 +170,9 @@ function Index() {
     setShapeClicks(prev => ({ ...prev, [index]: newClickCount }));
     
     if (newClickCount % 2 === 1) {
-      speak(shape.colorName);
+      playColorSound(shape.colorName);
     } else {
-      speak(shape.name);
+      playShapeSound(shape.name);
     }
   };
 
@@ -83,7 +185,10 @@ function Index() {
   }) => (
     <Card 
       className={`${bgColor} border-none shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105`}
-      onClick={() => setCurrentGame(gameType)}
+      onClick={() => {
+        playClickSound();
+        setCurrentGame(gameType);
+      }}
     >
       <CardContent className="p-8 text-center">
         <div className="text-6xl mb-4 animate-bounce-soft">{emoji}</div>
@@ -137,7 +242,10 @@ function Index() {
       <div className="max-w-4xl mx-auto">
         <header className="flex items-center justify-between mb-8">
           <Button 
-            onClick={() => setCurrentGame('home')}
+            onClick={() => {
+              playBackSound();
+              setCurrentGame('home');
+            }}
             className="bg-white/20 hover:bg-white/30 text-white border-none text-lg font-comic"
           >
             <Icon name="Home" size={20} />
@@ -157,7 +265,7 @@ function Index() {
               <Card 
                 key={index}
                 className="bg-white/90 border-none shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
-                onClick={() => speak(animal.sound)}
+                onClick={() => playAnimalSound(animal.name)}
               >
                 <CardContent className="p-6 text-center">
                   <div className="text-6xl mb-3 animate-wiggle hover:animate-bounce">{animal.emoji}</div>
@@ -196,7 +304,7 @@ function Index() {
               <Card 
                 key={index}
                 className="bg-white/90 border-none shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
-                onClick={() => speak(number.name)}
+                onClick={() => playNumberSound(number.num)}
               >
                 <CardContent className="p-6 text-center">
                   <div className="text-6xl mb-3 animate-wiggle hover:animate-bounce">{number.emoji}</div>
