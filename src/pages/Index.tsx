@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 
-type GameType = 'home' | 'animals' | 'shapes' | 'numbers' | 'phone';
+type GameType = 'home' | 'animals' | 'shapes' | 'numbers' | 'phone' | 'artist';
 
 interface Animal {
   name: string;
@@ -54,6 +54,12 @@ function Index() {
   const [showAnimalCall, setShowAnimalCall] = useState(false);
   const [callingAnimal, setCallingAnimal] = useState<Animal | null>(null);
   const [phoneNumber, setPhoneNumber] = useState('');
+  
+  // Artist game state
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [currentColor, setCurrentColor] = useState('#FF0000');
+  const [brushSize, setBrushSize] = useState(5);
+  const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
 
   const playClickSound = () => {
     playSound(440, 100, 'sine');
@@ -208,6 +214,74 @@ function Index() {
     }
   };
 
+  // Artist game functions
+  const colors = [
+    '#FFEB3B', '#FF9800', '#F44336', // Yellow, Orange, Red
+    '#FFB6C1', '#FF69B4', '#E91E63', // Light Pink, Hot Pink, Pink
+    '#9C27B0', '#673AB7', '#3F51B5', // Purple, Deep Purple, Indigo
+    '#B39DDB', '#00BCD4', '#2196F3', // Light Purple, Cyan, Blue
+    '#4CAF50', '#8BC34A', '#2E7D32', // Green, Light Green, Dark Green
+    '#9E9E9E', '#795548', '#000000'  // Gray, Brown, Black
+  ];
+
+  const tools = [
+    { name: 'brush', emoji: '🖌️', icon: 'Paintbrush2' },
+    { name: 'eraser', emoji: '🧽', icon: 'Eraser' },
+    { name: 'fill', emoji: '🪣', icon: 'PaintBucket' }
+  ];
+
+  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+    setIsDrawing(true);
+    draw(e);
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+  };
+
+  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDrawing || !canvasRef) return;
+
+    const canvas = canvasRef;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = currentColor;
+    ctx.lineWidth = brushSize;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  };
+
+  const clearCanvas = () => {
+    if (!canvasRef) return;
+    const ctx = canvasRef.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvasRef.width, canvasRef.height);
+    playSound(300, 100, 'square');
+  };
+
+  const saveDrawing = () => {
+    if (!canvasRef) return;
+    const link = document.createElement('a');
+    link.download = 'my-drawing.png';
+    link.href = canvasRef.toDataURL();
+    link.click();
+    playSound(500, 200, 'sine');
+  };
+
   const GameCard = ({ title, emoji, description, gameType, bgColor }: {
     title: string;
     emoji: string;
@@ -269,6 +343,13 @@ function Index() {
               description="Позвони животным и послушай их голоса!"
               gameType="phone"
               bgColor="bg-skyblue"
+            />
+            <GameCard
+              title="Художник"
+              emoji="🎨"
+              description="Рисуй красивые картинки разными цветами!"
+              gameType="artist"
+              bgColor="bg-childOrange"
             />
           </div>
         </div>
@@ -395,6 +476,80 @@ function Index() {
                 >
                   📵
                 </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Artist Game */}
+        {currentGame === 'artist' && (
+          <div className="flex flex-col lg:flex-row gap-4 h-full">
+            {/* Left Toolbar - Tools */}
+            <div className="lg:w-20 flex lg:flex-col gap-2 order-2 lg:order-1">
+              {tools.map((tool, index) => (
+                <Button
+                  key={index}
+                  className="w-16 h-16 bg-white/90 hover:bg-white border-2 border-gray-300 shadow-lg text-2xl rounded-xl"
+                  onClick={() => playClickSound()}
+                >
+                  {tool.emoji}
+                </Button>
+              ))}
+              
+              {/* Clear button */}
+              <Button
+                onClick={clearCanvas}
+                className="w-16 h-16 bg-red-100 hover:bg-red-200 border-2 border-red-300 shadow-lg text-2xl rounded-xl"
+              >
+                ❌
+              </Button>
+              
+              {/* Save button */}
+              <Button
+                onClick={saveDrawing}
+                className="w-16 h-16 bg-green-100 hover:bg-green-200 border-2 border-green-300 shadow-lg text-2xl rounded-xl"
+              >
+                ✅
+              </Button>
+            </div>
+
+            {/* Main Canvas Area */}
+            <div className="flex-1 order-1 lg:order-2">
+              <div className="bg-white rounded-2xl border-4 border-green-400 shadow-2xl p-4 h-[300px] sm:h-[400px] lg:h-[500px]">
+                <canvas
+                  ref={setCanvasRef}
+                  width={600}
+                  height={400}
+                  className="w-full h-full bg-white rounded-xl cursor-crosshair touch-none"
+                  onMouseDown={startDrawing}
+                  onMouseMove={draw}
+                  onMouseUp={stopDrawing}
+                  onMouseLeave={stopDrawing}
+                  onTouchStart={startDrawing}
+                  onTouchMove={draw}
+                  onTouchEnd={stopDrawing}
+                />
+              </div>
+            </div>
+
+            {/* Right Color Palette */}
+            <div className="lg:w-20 order-3">
+              <div className="grid grid-cols-6 lg:grid-cols-1 gap-2">
+                {colors.map((color, index) => (
+                  <button
+                    key={index}
+                    className={`w-12 h-12 rounded-full border-4 shadow-lg transition-all duration-200 ${
+                      currentColor === color 
+                        ? 'border-white scale-110 shadow-xl' 
+                        : 'border-gray-300 hover:scale-105'
+                    }`}
+                    style={{ backgroundColor: color }}
+                    onClick={() => {
+                      setCurrentColor(color);
+                      playColorSound('Цвет');
+                    }}
+                  />
+                ))}
               </div>
             </div>
           </div>
