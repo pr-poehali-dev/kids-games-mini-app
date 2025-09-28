@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 
-type GameType = 'home' | 'animals' | 'shapes' | 'numbers';
+type GameType = 'home' | 'animals' | 'shapes' | 'numbers' | 'phone';
 
 interface Animal {
   name: string;
@@ -51,6 +51,8 @@ const numbers = [
 function Index() {
   const [currentGame, setCurrentGame] = useState<GameType>('home');
   const [shapeClicks, setShapeClicks] = useState<{[key: number]: number}>({});
+  const [showAnimalCall, setShowAnimalCall] = useState(false);
+  const [callingAnimal, setCallingAnimal] = useState<Animal | null>(null);
 
   const playClickSound = () => {
     playSound(440, 100, 'sine');
@@ -59,6 +61,29 @@ function Index() {
   const playBackSound = () => {
     playSound(330, 150, 'sine');
     setTimeout(() => playSound(220, 100, 'sine'), 100);
+  };
+
+  const playRingTone = () => {
+    playSound(800, 300, 'sine');
+    setTimeout(() => playSound(600, 300, 'sine'), 400);
+    setTimeout(() => playSound(800, 300, 'sine'), 800);
+    setTimeout(() => playSound(600, 300, 'sine'), 1200);
+  };
+
+  const makeCall = () => {
+    playRingTone();
+    const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
+    setCallingAnimal(randomAnimal);
+    setTimeout(() => {
+      setShowAnimalCall(true);
+      playAnimalSound(randomAnimal.name);
+    }, 1500);
+  };
+
+  const hangUp = () => {
+    playSound(200, 100, 'square');
+    setShowAnimalCall(false);
+    setCallingAnimal(null);
   };
 
   const playSound = (frequency: number, duration: number = 200, type: 'sine' | 'square' | 'sawtooth' = 'sine') => {
@@ -209,7 +234,7 @@ function Index() {
             <p className="text-xl text-white/90 font-comic">Выбери игру и начинай учиться!</p>
           </header>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6">
             <GameCard
               title="Говорящие Животные"
               emoji="🐄"
@@ -230,6 +255,13 @@ function Index() {
               description="Считай от одного до девяти!"
               gameType="numbers"
               bgColor="bg-childPurple"
+            />
+            <GameCard
+              title="Говорящий Телефон"
+              emoji="📞"
+              description="Позвони животным и послушай их голоса!"
+              gameType="phone"
+              bgColor="bg-skyblue"
             />
           </div>
         </div>
@@ -255,6 +287,7 @@ function Index() {
             {currentGame === 'animals' && '🐄 Говорящие Животные'}
             {currentGame === 'shapes' && '🔴 Фигуры и Цвета'}
             {currentGame === 'numbers' && '1️⃣ Весёлые Цифры'}
+            {currentGame === 'phone' && '📞 Говорящий Телефон'}
           </h1>
           <div className="w-20"></div>
         </header>
@@ -313,6 +346,67 @@ function Index() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        )}
+
+        {currentGame === 'phone' && (
+          <div className="flex flex-col items-center">
+            <div className="bg-gray-800 rounded-3xl p-8 shadow-2xl max-w-sm w-full">
+              {/* Phone Screen */}
+              <div className="bg-gray-700 rounded-2xl p-6 mb-6">
+                <div className="bg-green-400 rounded-xl p-4 text-center">
+                  <div className="text-2xl font-bold text-gray-800 font-comic">📱 Детский Телефон</div>
+                  <div className="text-sm text-gray-600 mt-1">Позвони животным!</div>
+                </div>
+              </div>
+              
+              {/* Phone Keypad */}
+              <div className="grid grid-cols-3 gap-3 mb-6">
+                {[1,2,3,4,5,6,7,8,9,'*',0,'#'].map((key, index) => (
+                  <Button
+                    key={index}
+                    className="aspect-square bg-gray-600 hover:bg-gray-500 text-white text-xl font-bold rounded-xl"
+                    onClick={() => playSound(400 + index * 50, 100, 'square')}
+                  >
+                    {key}
+                  </Button>
+                ))}
+              </div>
+              
+              {/* Call Controls */}
+              <div className="flex justify-center gap-4">
+                <Button
+                  onClick={makeCall}
+                  className="bg-green-500 hover:bg-green-600 text-white rounded-full w-16 h-16 text-2xl"
+                >
+                  📞
+                </Button>
+                <Button
+                  onClick={hangUp}
+                  className="bg-red-500 hover:bg-red-600 text-white rounded-full w-16 h-16 text-2xl"
+                >
+                  📵
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Animal Call Modal */}
+        {showAnimalCall && callingAnimal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl animate-bounce-soft">
+              <div className="text-8xl mb-4 animate-wiggle">{callingAnimal.emoji}</div>
+              <h2 className="text-3xl font-bold text-gray-800 mb-2 font-comic">Звонит {callingAnimal.name}!</h2>
+              <p className="text-xl text-gray-600 mb-6 font-comic">{callingAnimal.sound}</p>
+              <Button
+                onClick={hangUp}
+                className="bg-red-500 hover:bg-red-600 text-white rounded-full w-20 h-20 text-3xl"
+              >
+                📵
+              </Button>
+              <p className="text-sm text-gray-500 mt-3 font-comic">Нажми красную кнопку чтобы завершить звонок</p>
+            </div>
           </div>
         )}
       </div>
