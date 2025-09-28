@@ -360,23 +360,20 @@ function Index() {
           <div className="flex flex-col items-center">
             <div className="bg-gray-800 rounded-3xl p-8 shadow-2xl max-w-sm w-full">
               {/* Phone Screen */}
-              <div className="bg-gray-700 rounded-2xl p-6 mb-6">
-                <div className="bg-green-400 rounded-xl p-4 text-center">
-                  <div className="text-xl font-bold text-gray-800 font-comic">📱 Детский Телефон</div>
-                  <div className="bg-gray-800 rounded-lg p-3 mt-2 min-h-[40px]">
-                    <div className="text-white text-lg font-mono text-center">
-                      {phoneNumber || "Набери номер..."}
-                    </div>
+              <div className="bg-gray-700 rounded-2xl p-4 mb-4">
+                <div className="bg-gray-800 rounded-lg p-4 min-h-[50px]">
+                  <div className="text-white text-xl font-mono text-center">
+                    {phoneNumber || "Набери номер..."}
                   </div>
                 </div>
               </div>
               
               {/* Phone Keypad */}
-              <div className="grid grid-cols-3 gap-3 mb-6">
+              <div className="grid grid-cols-3 gap-4 mb-6">
                 {[1,2,3,4,5,6,7,8,9,'*',0,'#'].map((key, index) => (
                   <Button
                     key={index}
-                    className="aspect-square bg-gray-600 hover:bg-gray-500 text-white text-xl font-bold rounded-xl"
+                    className="aspect-square bg-gray-600 hover:bg-gray-500 text-white text-2xl font-bold rounded-xl h-16 w-16"
                     onClick={() => addDigit(key)}
                   >
                     {key}
