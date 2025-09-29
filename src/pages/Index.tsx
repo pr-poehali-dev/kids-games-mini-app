@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 
-type GameType = 'home' | 'animals' | 'shapes' | 'numbers' | 'phone' | 'artist';
+type GameType = 'home' | 'animals' | 'shapes' | 'numbers' | 'phone' | 'artist' | 'bubbles';
 
 interface Animal {
   name: string;
@@ -61,6 +61,21 @@ function Index() {
   const [brushSize, setBrushSize] = useState(5);
   const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
   const [isErasing, setIsErasing] = useState(false);
+
+  // Bubbles game state
+  interface Bubble {
+    id: number;
+    x: number;
+    y: number;
+    size: number;
+    color: string;
+    speed: number;
+    popped: boolean;
+  }
+  
+  const [bubbles, setBubbles] = useState<Bubble[]>([]);
+  const [score, setScore] = useState(0);
+  const [bubbleIdCounter, setBubbleIdCounter] = useState(0);
 
   const playClickSound = () => {
     playSound(440, 100, 'sine');
@@ -317,6 +332,77 @@ function Index() {
     playSound(500, 200, 'sine');
   };
 
+  // Bubbles game functions
+  const bubbleColors = ['#FF6B9D', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#FFB347'];
+  
+  const createBubble = () => {
+    const newBubble: Bubble = {
+      id: bubbleIdCounter,
+      x: Math.random() * (window.innerWidth - 100) + 50,
+      y: window.innerHeight + 50,
+      size: Math.random() * 40 + 30, // размер от 30 до 70
+      color: bubbleColors[Math.floor(Math.random() * bubbleColors.length)],
+      speed: Math.random() * 2 + 1, // скорость от 1 до 3
+      popped: false
+    };
+    setBubbleIdCounter(prev => prev + 1);
+    setBubbles(prev => [...prev, newBubble]);
+  };
+
+  const popBubble = (bubbleId: number) => {
+    setBubbles(prev => prev.map(bubble => 
+      bubble.id === bubbleId ? { ...bubble, popped: true } : bubble
+    ));
+    setScore(prev => prev + 1);
+    playBubblePopSound();
+    
+    // Удаляем лопнувший пузырь через небольшую задержку
+    setTimeout(() => {
+      setBubbles(prev => prev.filter(bubble => bubble.id !== bubbleId));
+    }, 300);
+  };
+
+  const playBubblePopSound = () => {
+    playSound(800, 100, 'sine');
+    setTimeout(() => playSound(600, 50, 'sine'), 50);
+  };
+
+  // Анимация движения пузырей
+  useEffect(() => {
+    if (currentGame !== 'bubbles') return;
+    
+    const interval = setInterval(() => {
+      setBubbles(prev => prev.map(bubble => ({
+        ...bubble,
+        y: bubble.y - bubble.speed
+      })).filter(bubble => bubble.y > -100)); // Удаляем пузыри, улетевшие вверх
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, [currentGame]);
+
+  // Сброс состояния при входе в игру пузырей
+  useEffect(() => {
+    if (currentGame === 'bubbles') {
+      setBubbles([]);
+      setScore(0);
+      setBubbleIdCounter(0);
+    }
+  }, [currentGame]);
+
+  // Генерация новых пузырей
+  useEffect(() => {
+    if (currentGame !== 'bubbles') return;
+    
+    const interval = setInterval(() => {
+      if (Math.random() < 0.3) { // 30% шанс создать пузырь
+        createBubble();
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [currentGame, bubbleIdCounter]);
+
   const GameCard = ({ title, emoji, description, gameType, bgColor }: {
     title: string;
     emoji: string;
@@ -385,6 +471,13 @@ function Index() {
               description="Рисуй красивые картинки разными цветами!"
               gameType="artist"
               bgColor="bg-childOrange"
+            />
+            <GameCard
+              title="Пузыри"
+              emoji="🫧"
+              description="Лопай воздушные пузыри пальчиком!"
+              gameType="bubbles"
+              bgColor="bg-skyblue"
             />
           </div>
         </div>
@@ -615,6 +708,54 @@ function Index() {
                 ))}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Bubbles Game */}
+        {currentGame === 'bubbles' && (
+          <div className="relative h-full overflow-hidden bg-gradient-to-b from-blue-200 to-blue-400">
+            {/* Score */}
+            <div className="absolute top-4 left-4 z-10">
+              <div className="bg-white/90 rounded-2xl px-6 py-3 shadow-lg">
+                <p className="text-2xl font-bold text-blue-600 font-comic">Счёт: {score}</p>
+              </div>
+            </div>
+
+            {/* Bubbles */}
+            {bubbles.map(bubble => (
+              <div
+                key={bubble.id}
+                className={`absolute transition-all duration-300 cursor-pointer ${
+                  bubble.popped ? 'scale-150 opacity-0' : 'hover:scale-110'
+                }`}
+                style={{
+                  left: `${bubble.x}px`,
+                  top: `${bubble.y}px`,
+                  width: `${bubble.size}px`,
+                  height: `${bubble.size}px`,
+                }}
+                onClick={() => !bubble.popped && popBubble(bubble.id)}
+              >
+                <div
+                  className="w-full h-full rounded-full shadow-lg border-2 border-white/30 animate-pulse"
+                  style={{
+                    backgroundColor: bubble.color,
+                    background: `radial-gradient(circle at 30% 30%, ${bubble.color}dd, ${bubble.color}88, ${bubble.color}44)`,
+                  }}
+                />
+              </div>
+            ))}
+
+            {/* Instructions */}
+            {bubbles.length === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="bg-white/90 rounded-3xl p-8 text-center shadow-2xl max-w-sm">
+                  <div className="text-6xl mb-4">🫧</div>
+                  <h2 className="text-2xl font-bold text-blue-600 mb-2 font-comic">Лопай пузыри!</h2>
+                  <p className="text-lg text-gray-600 font-comic">Нажимай на цветные пузыри, когда они появятся</p>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
