@@ -231,12 +231,38 @@ function Index() {
   ];
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!canvasRef) return;
+    
     setIsDrawing(true);
-    draw(e);
+    
+    const canvas = canvasRef;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Начинаем новый путь и устанавливаем начальную точку
+    const rect = canvas.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    const x = (clientX - rect.left) * scaleX;
+    const y = (clientY - rect.top) * scaleY;
+
+    ctx.beginPath();
+    ctx.moveTo(x, y);
   };
 
   const stopDrawing = () => {
     setIsDrawing(false);
+    if (!canvasRef) return;
+    
+    const ctx = canvasRef.getContext('2d');
+    if (!ctx) return;
+    
+    // Завершаем текущий путь
+    ctx.beginPath();
   };
 
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
@@ -265,8 +291,6 @@ function Index() {
 
     ctx.lineTo(x, y);
     ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x, y);
   };
 
   const clearCanvas = () => {
