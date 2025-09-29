@@ -60,6 +60,7 @@ function Index() {
   const [currentColor, setCurrentColor] = useState('#FF0000');
   const [brushSize, setBrushSize] = useState(5);
   const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
+  const [isErasing, setIsErasing] = useState(false);
 
   const playClickSound = () => {
     playSound(440, 100, 'sine');
@@ -283,9 +284,15 @@ function Index() {
     const x = (clientX - rect.left) * scaleX;
     const y = (clientY - rect.top) * scaleY;
 
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.strokeStyle = currentColor;
-    ctx.lineWidth = brushSize;
+    if (isErasing) {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.lineWidth = brushSize * 2; // Ластик чуть больше
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = currentColor;
+      ctx.lineWidth = brushSize;
+    }
+    
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
@@ -536,6 +543,21 @@ function Index() {
                   />
                 </Button>
               ))}
+              
+              {/* Eraser button */}
+              <Button
+                onClick={() => {
+                  setIsErasing(!isErasing);
+                  playClickSound();
+                }}
+                className={`w-16 h-16 border-2 shadow-lg text-2xl rounded-xl ${
+                  isErasing 
+                    ? 'bg-pink-200 hover:bg-pink-300 border-pink-400' 
+                    : 'bg-gray-100 hover:bg-gray-200 border-gray-300'
+                }`}
+              >
+                🧽
+              </Button>
               
               {/* Clear button */}
               <Button
