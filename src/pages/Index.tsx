@@ -224,10 +224,10 @@ function Index() {
     '#9E9E9E', '#795548', '#000000'  // Gray, Brown, Black
   ];
 
-  const tools = [
-    { name: 'brush', emoji: '🖌️', icon: 'Paintbrush2' },
-    { name: 'eraser', emoji: '🧽', icon: 'Eraser' },
-    { name: 'fill', emoji: '🪣', icon: 'PaintBucket' }
+  const brushSizes = [
+    { size: 3, name: 'Тонкая кисть' },
+    { size: 8, name: 'Средняя кисть' },
+    { size: 15, name: 'Толстая кисть' }
   ];
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
@@ -512,15 +512,28 @@ function Index() {
         {/* Artist Game */}
         {currentGame === 'artist' && (
           <div className="flex flex-col lg:flex-row gap-4 h-full">
-            {/* Left Toolbar - Tools */}
+            {/* Left Toolbar - Brush Sizes */}
             <div className="lg:w-20 flex lg:flex-col gap-2 order-2 lg:order-1">
-              {tools.map((tool, index) => (
+              {brushSizes.map((brush, index) => (
                 <Button
                   key={index}
-                  className="w-16 h-16 bg-white/90 hover:bg-white border-2 border-gray-300 shadow-lg text-2xl rounded-xl"
-                  onClick={() => playClickSound()}
+                  className={`w-16 h-16 bg-white/90 hover:bg-white border-2 shadow-lg rounded-xl flex items-center justify-center ${
+                    brushSize === brush.size 
+                      ? 'border-blue-500 bg-blue-50' 
+                      : 'border-gray-300'
+                  }`}
+                  onClick={() => {
+                    setBrushSize(brush.size);
+                    playClickSound();
+                  }}
                 >
-                  {tool.emoji}
+                  <div 
+                    className="bg-gray-800 rounded-full"
+                    style={{ 
+                      width: `${Math.min(brush.size * 2, 32)}px`, 
+                      height: `${Math.min(brush.size * 2, 32)}px` 
+                    }}
+                  />
                 </Button>
               ))}
               
