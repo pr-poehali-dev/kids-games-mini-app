@@ -336,17 +336,19 @@ function Index() {
   const bubbleColors = ['#FF6B9D', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#FFB347'];
   
   const createBubble = () => {
-    const newBubble: Bubble = {
-      id: bubbleIdCounter,
-      x: Math.random() * (window.innerWidth - 100) + 50,
-      y: window.innerHeight + 50,
-      size: Math.random() * 40 + 30, // размер от 30 до 70
-      color: bubbleColors[Math.floor(Math.random() * bubbleColors.length)],
-      speed: Math.random() * 2 + 1, // скорость от 1 до 3
-      popped: false
-    };
-    setBubbleIdCounter(prev => prev + 1);
-    setBubbles(prev => [...prev, newBubble]);
+    setBubbleIdCounter(prev => {
+      const newBubble: Bubble = {
+        id: prev,
+        x: Math.random() * (window.innerWidth - 100) + 50,
+        y: window.innerHeight + 50,
+        size: Math.random() * 40 + 30,
+        color: bubbleColors[Math.floor(Math.random() * bubbleColors.length)],
+        speed: Math.random() * 2 + 1,
+        popped: false
+      };
+      setBubbles(current => [...current, newBubble]);
+      return prev + 1;
+    });
   };
 
   const popBubble = (bubbleId: number) => {
@@ -391,13 +393,11 @@ function Index() {
     if (currentGame !== 'bubbles') return;
     
     const interval = setInterval(() => {
-      if (Math.random() < 0.7) {
-        createBubble();
-      }
-    }, 800);
+      createBubble();
+    }, 1000);
 
     return () => clearInterval(interval);
-  }, [currentGame, bubbleIdCounter]);
+  }, [currentGame]);
 
   const GameCard = ({ title, emoji, description, gameType, bgColor }: {
     title: string;
