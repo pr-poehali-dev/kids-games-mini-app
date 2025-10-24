@@ -346,6 +346,7 @@ function Index() {
       return;
     }
     
+    console.log('Bubbles game started!');
     let nextId = 0;
     
     const createInterval = setInterval(() => {
@@ -356,20 +357,30 @@ function Index() {
         size: Math.random() * 50 + 40,
         color: bubbleColors[Math.floor(Math.random() * bubbleColors.length)]
       };
-      setBubbles(prev => [...prev, newBubble]);
+      console.log('Creating bubble:', newBubble);
+      setBubbles(prev => {
+        console.log('Current bubbles:', prev.length, 'Adding bubble, new total:', prev.length + 1);
+        return [...prev, newBubble];
+      });
     }, 800);
 
     const moveInterval = setInterval(() => {
-      setBubbles(prev => prev
-        .map(bubble => ({
-          ...bubble,
-          y: bubble.y - 3
-        }))
-        .filter(bubble => bubble.y > -100)
-      );
+      setBubbles(prev => {
+        const updated = prev
+          .map(bubble => ({
+            ...bubble,
+            y: bubble.y - 3
+          }))
+          .filter(bubble => bubble.y > -100);
+        if (prev.length !== updated.length) {
+          console.log('Bubbles removed:', prev.length - updated.length);
+        }
+        return updated;
+      });
     }, 30);
 
     return () => {
+      console.log('Bubbles game stopped');
       clearInterval(createInterval);
       clearInterval(moveInterval);
     };
