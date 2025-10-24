@@ -350,16 +350,9 @@ function Index() {
   };
 
   const popBubble = (bubbleId: number) => {
-    setBubbles(prev => prev.map(bubble => 
-      bubble.id === bubbleId ? { ...bubble, popped: true } : bubble
-    ));
+    setBubbles(prev => prev.filter(bubble => bubble.id !== bubbleId));
     setScore(prev => prev + 1);
     playBubblePopSound();
-    
-    // Удаляем лопнувший пузырь через небольшую задержку
-    setTimeout(() => {
-      setBubbles(prev => prev.filter(bubble => bubble.id !== bubbleId));
-    }, 300);
   };
 
   const playBubblePopSound = () => {
@@ -372,10 +365,14 @@ function Index() {
     if (currentGame !== 'bubbles') return;
     
     const interval = setInterval(() => {
-      setBubbles(prev => prev.map(bubble => ({
-        ...bubble,
-        y: bubble.y - bubble.speed
-      })).filter(bubble => bubble.y > -100)); // Удаляем пузыри, улетевшие вверх
+      setBubbles(prev => prev
+        .filter(bubble => !bubble.popped)
+        .map(bubble => ({
+          ...bubble,
+          y: bubble.y - bubble.speed
+        }))
+        .filter(bubble => bubble.y > -100)
+      );
     }, 50);
 
     return () => clearInterval(interval);
@@ -395,10 +392,10 @@ function Index() {
     if (currentGame !== 'bubbles') return;
     
     const interval = setInterval(() => {
-      if (Math.random() < 0.3) { // 30% шанс создать пузырь
+      if (Math.random() < 0.7) {
         createBubble();
       }
-    }, 1000);
+    }, 800);
 
     return () => clearInterval(interval);
   }, [currentGame, bubbleIdCounter]);
