@@ -69,13 +69,10 @@ function Index() {
     y: number;
     size: number;
     color: string;
-    speed: number;
-    popped: boolean;
   }
   
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
   const [score, setScore] = useState(0);
-  const [bubbleIdCounter, setBubbleIdCounter] = useState(0);
 
   const playClickSound = () => {
     playSound(440, 100, 'sine');
@@ -335,68 +332,47 @@ function Index() {
   // Bubbles game functions
   const bubbleColors = ['#FF6B9D', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#FFB347'];
   
-  const createBubble = () => {
-    setBubbleIdCounter(prev => {
-      const newBubble: Bubble = {
-        id: prev,
-        x: Math.random() * (window.innerWidth - 100) + 50,
-        y: window.innerHeight + 50,
-        size: Math.random() * 40 + 30,
-        color: bubbleColors[Math.floor(Math.random() * bubbleColors.length)],
-        speed: Math.random() * 2 + 1,
-        popped: false
-      };
-      setBubbles(current => [...current, newBubble]);
-      return prev + 1;
-    });
-  };
-
   const popBubble = (bubbleId: number) => {
     setBubbles(prev => prev.filter(bubble => bubble.id !== bubbleId));
     setScore(prev => prev + 1);
-    playBubblePopSound();
-  };
-
-  const playBubblePopSound = () => {
     playSound(800, 100, 'sine');
-    setTimeout(() => playSound(600, 50, 'sine'), 50);
+    setTimeout(() => playSound(1000, 80, 'sine'), 80);
   };
 
-  // Анимация движения пузырей
   useEffect(() => {
-    if (currentGame !== 'bubbles') return;
+    if (currentGame !== 'bubbles') {
+      setBubbles([]);
+      setScore(0);
+      return;
+    }
     
-    const interval = setInterval(() => {
+    let nextId = 0;
+    
+    const createInterval = setInterval(() => {
+      const newBubble: Bubble = {
+        id: nextId++,
+        x: Math.random() * (window.innerWidth - 100) + 50,
+        y: window.innerHeight,
+        size: Math.random() * 50 + 40,
+        color: bubbleColors[Math.floor(Math.random() * bubbleColors.length)]
+      };
+      setBubbles(prev => [...prev, newBubble]);
+    }, 800);
+
+    const moveInterval = setInterval(() => {
       setBubbles(prev => prev
         .map(bubble => ({
           ...bubble,
-          y: bubble.y - bubble.speed
+          y: bubble.y - 3
         }))
         .filter(bubble => bubble.y > -100)
       );
-    }, 50);
+    }, 30);
 
-    return () => clearInterval(interval);
-  }, [currentGame]);
-
-  // Сброс состояния при входе в игру пузырей
-  useEffect(() => {
-    if (currentGame === 'bubbles') {
-      setBubbles([]);
-      setScore(0);
-      setBubbleIdCounter(0);
-    }
-  }, [currentGame]);
-
-  // Генерация новых пузырей
-  useEffect(() => {
-    if (currentGame !== 'bubbles') return;
-    
-    const interval = setInterval(() => {
-      createBubble();
-    }, 1000);
-
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(createInterval);
+      clearInterval(moveInterval);
+    };
   }, [currentGame]);
 
   const GameCard = ({ title, emoji, description, gameType, bgColor }: {
