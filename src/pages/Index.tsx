@@ -697,7 +697,7 @@ function Index() {
 
         {/* Bubbles Game */}
         {currentGame === 'bubbles' && (
-          <div className="relative h-full overflow-hidden bg-gradient-to-b from-blue-200 to-blue-400">
+          <div className="relative h-full bg-gradient-to-b from-blue-200 to-blue-400">
             {/* Score */}
             <div className="absolute top-4 left-4 z-10">
               <div className="bg-white/90 rounded-2xl px-6 py-3 shadow-lg">
