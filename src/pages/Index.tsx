@@ -366,7 +366,6 @@ function Index() {
     
     const interval = setInterval(() => {
       setBubbles(prev => prev
-        .filter(bubble => !bubble.popped)
         .map(bubble => ({
           ...bubble,
           y: bubble.y - bubble.speed
@@ -722,16 +721,14 @@ function Index() {
             {bubbles.map(bubble => (
               <div
                 key={bubble.id}
-                className={`absolute transition-all duration-300 cursor-pointer ${
-                  bubble.popped ? 'scale-150 opacity-0' : 'hover:scale-110'
-                }`}
+                className="absolute transition-all duration-100 cursor-pointer hover:scale-110"
                 style={{
                   left: `${bubble.x}px`,
                   top: `${bubble.y}px`,
                   width: `${bubble.size}px`,
                   height: `${bubble.size}px`,
                 }}
-                onClick={() => !bubble.popped && popBubble(bubble.id)}
+                onClick={() => popBubble(bubble.id)}
               >
                 <div
                   className="w-full h-full rounded-full shadow-lg border-2 border-white/30 animate-pulse"
