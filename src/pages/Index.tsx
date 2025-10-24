@@ -350,11 +350,12 @@ function Index() {
     let nextId = 0;
     
     const createInterval = setInterval(() => {
+      const size = Math.random() * 50 + 40;
       const newBubble: Bubble = {
         id: nextId++,
-        x: Math.random() * (window.innerWidth - 100) + 50,
-        y: window.innerHeight,
-        size: Math.random() * 50 + 40,
+        x: Math.random() * (window.innerWidth - size) + size/2,
+        y: window.innerHeight - size,
+        size: size,
         color: bubbleColors[Math.floor(Math.random() * bubbleColors.length)]
       };
       console.log('Creating bubble:', newBubble);
